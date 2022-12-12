@@ -17,5 +17,7 @@ if ($app->post('/signup')) {
         'user_id' => $data['user_id'],
         'password' => $data['password']
     ));
+
+    // sql 쿼리
 }
 ?>
