@@ -51,4 +51,19 @@ if ($app->post('/2022-database-back/signup')) {
     }
     echo json_encode($response);
 }
+else if ($app->post('/2022-database-back/login')) {
+    echo "Testing11";
+    // URL 파라미터 구해오기(정규식부분에서 괄호 부분 순서대로 가져옴)image.png
+    $params = $app->getParams();
+
+    // POST, PUT 등에서 보내온 데이타
+    $user = $app->getData(); //user
+    $id = $user['id'];
+
+    $sql2 = "SELECT * from user where id='${id}'";
+
+    echo $sql2;
+    echo "Testing55";
+
+}
 ?>
