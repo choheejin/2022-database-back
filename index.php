@@ -8,5 +8,5 @@ header("Access-Control-Allow-Methods: *");
 
 include_once 'dbconfig.php';
 include_once 'auth.php';
-
+include_once 'comment.php';
 ?>
