@@ -31,4 +31,33 @@ if ($app->post('/article/post')) {
     echo json_encode($response);
 }
 
+if ($app->get('/articles')) {
+    $params = $app->getParams();
+
+    // 아직 작업 전
+    $sql = "SELECT article_id, title, thumbnail, concat(substr(content, 1, 50), ' ...') AS preview FROM article";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute();
+
+    if($stmt->execute()) {
+        $data = [];
+        while($result = $stmt->fetch()){
+            array_push($data, array(
+                        'article_id' => $result['article_id'],
+                        'thumbnail' => $result['thumbnail'],
+                        'title' => $result['title'],
+                        'preview' => $result['preview']
+            ));
+        }
+
+        $response = ['status' => 200, 'message' => 'Record created successfully.','response' => $data];
+        $app->print($response);
+
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+        $app->print($response, 500);
+    }
+}
+
 ?>
