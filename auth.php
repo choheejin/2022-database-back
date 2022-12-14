@@ -34,20 +34,34 @@ if ($app->post('/signup')) {
 
     echo json_encode($response);
 }
-else if ($app->post('/login')) {
+
+if ($app->post('/login')) {
     // POST, PUT 등에서 보내온 데이타
     $user = $app->getData(); //user
     $id = $user['id'];
+    $pw = $user['pw'];
 
-    $sql2 = "SELECT * from user where id='${id}'";
+    $sql2 = "SELECT count(*) as 'cnt' from user where id ='$id' and pw ='$pw';";
     $stmt = $conn->prepare($sql2);
+    $stmt->execute();
 
     if($stmt->execute()) {
-        $response = ['status' => 200, 'message' => 'Login successfully'];
+        $result = $stmt->fetchAll();
+
+        if($result[0][0] == 1) {
+            $response = ['status' => 200, 'message' => 'Login successfully', 'response' => $id];
+            $app->print($response);
+        } else {
+            $response = ['status' => 500, 'message' => 'Login failed'];
+            $app->print($response, 500);
+        }
+
     } else {
-        $response = ['status' => 500, 'message' => 'Failed to login'];
-    }
-    echo json_encode($response);
+        $response = ['status' => 500, 'message' => 'Login failed'];
+        $app->print($response, 500);
+}
 
 }
+
+
 ?>
