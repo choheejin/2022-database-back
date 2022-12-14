@@ -8,7 +8,7 @@ $app = new App();
 
 if ($app->post('/article/post')) {
     $article = $app->getData();
-    $sql = "INSERT INTO article (title, thumbnail, content, is_public, user_id, type_id) VALUES(:title, :thumbnail, :content, :is_public, :user_id, :type_id)";
+    $sql = "INSERT INTO article (title, thumbnail, content, is_public, user_id) VALUES(:title, :thumbnail, :content, :is_public, :user_id)";
     $stmt = $conn->prepare($sql);
 
     $stmt->bindParam(':title', $article['title']);
@@ -16,7 +16,6 @@ if ($app->post('/article/post')) {
     $stmt->bindParam(':content', $article['content']);
     $stmt->bindParam(':is_public', $article['is_public']);
     $stmt->bindParam(':user_id', $article['user_id']);
-    $stmt->bindParam(':type_id', $article['type_id']);
 
     $data = array('title' => $article['title'], 'thumbnail' => $article['thumbnail'], 'content' => $article['content'], 'is_public' => $article['is_public'], 'user_id' => $article['user_id'], 'type_id' => $article['type_id']);
 
@@ -31,11 +30,10 @@ if ($app->post('/article/post')) {
     echo json_encode($response);
 }
 
-if ($app->get('/articles')) {
+if ($app->get('/articles/([0-9])')) {
     $params = $app->getParams();
 
-    // 아직 작업 전
-    $sql = "SELECT article_id, title, thumbnail, concat(substr(content, 1, 50), ' ...') AS preview FROM article";
+    $sql = "SELECT article_id, title, thumbnail, concat(substr(content, 1, 50), ' ...') AS preview, type_id FROM article WHERE type_id =" . strval($params[0]);
     $stmt = $conn->prepare($sql);
 
     $stmt->execute();
