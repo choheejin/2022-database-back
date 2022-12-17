@@ -109,15 +109,16 @@ if ($app->get('/articles/([0-9]*)')) {
     }
 }
 
-if ($app->get('/articles/([0-9]*)/search/([a-zA-Z0-9_]*)')) {
-// if ($app->get('/articles/search/([a-zA-Z0-9_])')) {
+if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
     $params = $app->getParams();
+
+    $urlDecoded = urldecode($params[1]);
 
     // Error Code 1055
     $set = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
     $conn->query($set);
 
-    $sql = "SELECT * FROM search WHERE (title LIKE '%" . strval($params[1]) . "%' OR content LIKE '%" . strval($params[1]) . "%') and type_id =" . strval($params[0]);
+    $sql = "SELECT * FROM search WHERE (title LIKE '%" . strval($urlDecoded) . "%' OR content LIKE '%" . strval($urlDecoded) . "%') and type_id =" . strval($params[0]);
     // $sql = "SELECT * FROM search";
     // $sql = "SELECT * FROM search WHERE title LIKE '%" . strval($params[0]) . "%' OR content LIKE '%" . strval($params[0]) . "%'";
     $stmt = $conn->prepare($sql);
