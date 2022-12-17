@@ -68,6 +68,19 @@ if ($app->put('/comment/update/([0-9]*)')){
 
 }
 
+if($app->delete('/comment/delete/([0-9]*)')){
+    $comment = $app->getParams();
+
+    $sql = "DELETE from comment where comment_id = ".$comment[0];
+    $stmt = $conn->prepare($sql);
+
+    if($stmt->execute()){
+        $response = ['status' => 200, 'message' => 'comment deleted successfully'];
+    } else {
+        $response = ['status' => 500, 'message' => 'failed to delete comment'];
+    }
+}
+
 if ($app->post('/comment/post')) {
     // POST, PUT 등에서 보내온 데이타
     $comment = $app->getData();
