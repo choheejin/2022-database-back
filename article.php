@@ -42,28 +42,75 @@ if($app->get('/articles/user/([a-zA-Z0-9_]*)')){
     }
 }
 
-// 특정 게시글 조회
-if($app->get('/article/([0-9]*)')){
+// 특정 게시글 조회(조회하는 유저와 글쓴 유저가 동일할 경우)
+if($app->get('/article/user/([0-9]*)')){
     $params = $app->getParams();
-    $sql = "select DISTINCT article_id, title,a_thumbnail, a_content, a_date, a_user from article_detail where article_id = ".$params[0];
+    $sql = "select article_id, title, thumbnail, content, date, user_id from article where article_id = ".$params[0];
 
     $stmt = $conn->prepare($sql);
 
     if($stmt->execute()) {
-
         $result = $stmt->fetch();
-
         $data = array(
             'article_id' => $result['article_id'],
             'title' => $result['title'],
-            'a_thumbnail' => $result['a_thumbnail'],
-            'a_content' => $result['a_content'],
-            'a_date' => $result['a_date'],
-            'a_user' => $result['a_user']
+            'a_thumbnail' => $result['thumbnail'],
+            'a_content' => $result['content'],
+            'a_date' => $result['date'],
+            'a_user' => $result['user_id']
         );
 
-        $sql2 = "select article_id, title from article where article_id in ((
-                 select article_id from article where article_id > ".$params[0]." and user_id = '".$data['a_user']."' limit 1), (select article_id from article where article_id < ".$params[0]." and user_id = '".$data['a_user']."' limit 1)); ";
+        $sql2 = "select article_id, title from article where article_id in (
+                 (select article_id from article where article_id > ".$params[0]." and user_id = '".$data['a_user']."' order by article_id limit 1), 
+                 (select article_id from article where article_id < ".$params[0]." and user_id = '".$data['a_user']."' order by article_id desc limit 1)); ";
+
+        $stmt2 = $conn->prepare($sql2);
+
+        if($stmt2->execute()) {
+            while($result2 = $stmt2->fetch()){
+                if($result2['article_id']>$data['article_id']){
+                    $data = array_merge($data, array(
+                        'nxtArticle' => array('article_id' => $result2['article_id'], 'title' => $result2['title'])
+                    ));
+                }
+                if($result2['article_id']<$data['article_id']){
+                    $data = array_merge($data, array(
+                        'preArticle' => array('article_id' => $result2['article_id'], 'title' => $result2['title'])
+                    ));
+                }
+            }
+        }
+
+        $response = ['status' => 200, 'message' => 'get article successfully.','response' => $data];
+        $app->print($response);
+
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to get article.'];
+        $app->print($response, 500);
+    }
+}
+
+// 특정 게시글 조회(조회하는 유저와 글쓴 유저가 다를 때, private 보이지 않게 제거)
+if($app->get('/article/non-user/([0-9]*)')){
+    $params = $app->getParams();
+    $sql = "select article_id, title, thumbnail, content, date, user_id from preview where article_id = ".$params[0];
+
+    $stmt = $conn->prepare($sql);
+
+    if($stmt->execute()) {
+        $result = $stmt->fetch();
+        $data = array(
+            'article_id' => $result['article_id'],
+            'title' => $result['title'],
+            'a_thumbnail' => $result['thumbnail'],
+            'a_content' => $result['content'],
+            'a_date' => $result['date'],
+            'a_user' => $result['user_id']
+        );
+
+        $sql2 = "select article_id, title from preview where article_id in (
+                 (select article_id from preview where article_id > ".$params[0]." and user_id = '".$data['a_user']."' order by article_id limit 1), 
+                 (select article_id from preview where article_id < ".$params[0]." and user_id = '".$data['a_user']."' order by article_id desc limit 1)); ";
 
         $stmt2 = $conn->prepare($sql2);
 
@@ -116,10 +163,11 @@ if ($app->post('/article/post')) {
     echo json_encode($response);
 }
 
-if ($app->get('/articles/([0-9]*)')) {
+//main
+if ($app->get('/articles/([0-9]*)/user/([a-zA-Z0-9_]*)')) {
     $params = $app->getParams();
 
-    $sql = "SELECT article_id, title, thumbnail, preview, type_id FROM preview WHERE type_id =" . strval($params[0]);
+    $sql = "SELECT article_id, title, thumbnail, preview, user_id, type_id FROM preview WHERE type_id =" . strval($params[0]);
     $stmt = $conn->prepare($sql);
 
     $stmt->execute();
@@ -131,7 +179,23 @@ if ($app->get('/articles/([0-9]*)')) {
                         'article_id' => $result['article_id'],
                         'thumbnail' => $result['thumbnail'],
                         'title' => $result['title'],
-                        'preview' => $result['preview']
+                        'preview' => $result['preview'],
+                        'user_id' => $result['user_id']
+            ));
+        }
+
+        $sql2 = "SELECT article_id, title, thumbnail, if (length(content) > 50, concat(substr(content, 1, 50), ' ...'), content) as preview, user_id, type_id FROM article WHERE type_id =" . strval($params[0])." and is_public = 0 and user_id ='" .$params[1]."'";
+        $stmt2 = $conn->prepare($sql2);
+
+        $stmt2->execute();
+
+        while ($result2 = $stmt2->fetch()){
+            array_push($data, array(
+                'article_id' => $result2['article_id'],
+                'thumbnail' => $result2['thumbnail'],
+                'title' => $result2['title'],
+                'preview' => $result2['preview'],
+                'user_id' => $result2['user_id']
             ));
         }
 
