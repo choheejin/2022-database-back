@@ -42,6 +42,43 @@ if($app->get('/articles/user/([a-zA-Z0-9_]*)')){
     }
 }
 
+// 특정 유저 게시글 private 제외 조회
+if($app->get('/articles/non-user/([a-zA-Z0-9_]*)')){
+    $params = $app->getParams();
+    $sql = "SELECT article_id, title, thumbnail, preview, content, date, type_id FROM preview where article_id in (select article_id from article where user_id = '".$params[0]."')";
+
+    $stmt = $conn->prepare($sql);
+
+    if($stmt->execute()){
+        $data = [];
+        while ($result = $stmt->fetch()){
+            $sql2 = "select count(comment_id) as cnt from article_detail where article_id = ".$result['article_id'];
+            $stmt2 = $conn->prepare($sql2);
+            $stmt2->execute();
+            $result2 = $stmt2->fetch();
+
+            array_push($data, array(
+                'article_id' => $result['article_id'],
+                'thumbnail' => $result['thumbnail'],
+                'title' => $result['title'],
+                'preview' => $result['preview'],
+                'content' => $result['content'],
+                'date' => $result['date'],
+                'type_id' => $result['type_id'],
+                'comment_cnt'=>$result2['cnt']
+            ));
+        }
+
+
+        $response = ['status' => 200, 'message' => 'get user articles successfully.','response' => $data];
+        $app->print($response);
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to get user articles.'];
+        $app->print($response, 500);
+    }
+}
+
+
 // 특정 게시글 조회(조회하는 유저와 글쓴 유저가 동일할 경우)
 if($app->get('/article/user/([0-9]*)')){
     $params = $app->getParams();
