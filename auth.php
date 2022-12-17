@@ -62,9 +62,8 @@ if ($app->post('/login')) {
 }
 }
 
-if ($app->get('/my-page/([a-zA-Z0-9_])')) {
+if ($app->get('/my-page/([a-zA-Z0-9_]*)')) {
     // POST, PUT 등에서 보내온 데이타
-
     $params = $app->getParams();
     
     $sql3 = "SELECT id, name, gender, email from user where id ='$params[0]';";
