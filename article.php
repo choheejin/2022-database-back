@@ -31,7 +31,7 @@ if ($app->post('/article/post')) {
     echo json_encode($response);
 }
 
-if ($app->get('/articles/([0-9])')) {
+if ($app->get('/articles/([0-9]*)')) {
     $params = $app->getParams();
 
     $sql = "SELECT article_id, title, thumbnail, concat(substr(content, 1, 50), ' ...') AS preview, type_id FROM article WHERE is_public = 1 and type_id =" . strval($params[0]);
@@ -47,6 +47,42 @@ if ($app->get('/articles/([0-9])')) {
                         'thumbnail' => $result['thumbnail'],
                         'title' => $result['title'],
                         'preview' => $result['preview']
+            ));
+        }
+
+        $response = ['status' => 200, 'message' => 'Record created successfully.','response' => $data];
+        $app->print($response);
+
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+        $app->print($response, 500);
+    }
+}
+
+if ($app->get('/articles/([0-9]*)/search/([a-zA-Z0-9_]*)')) {
+// if ($app->get('/articles/search/([a-zA-Z0-9_])')) {
+    $params = $app->getParams();
+
+    // Error Code 1055
+    $set = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
+    $conn->query($set);
+
+    $sql = "SELECT * FROM search WHERE (title LIKE '%" . strval($params[1]) . "%' OR content LIKE '%" . strval($params[1]) . "%') and type_id =" . strval($params[0]);
+    // $sql = "SELECT * FROM search";
+    // $sql = "SELECT * FROM search WHERE title LIKE '%" . strval($params[0]) . "%' OR content LIKE '%" . strval($params[0]) . "%'";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute();
+
+    if($stmt->execute()) {
+        $data = [];
+        while($result = $stmt->fetch()){
+            array_push($data, array(
+                        'article_id' => $result['article_id'],
+                        'title' => $result['title'],
+                        'thumbnail' => $result['thumbnail'],
+                        'preview' => $result['preview'],
+                        'content' => $result['content']
             ));
         }
 
