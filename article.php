@@ -163,7 +163,46 @@ if ($app->post('/article/post')) {
     echo json_encode($response);
 }
 
-//main
+if ($app->put('/article/update/([0-9]*)')){
+    $params = $app->getParams();
+
+    $article = $app->getData();
+
+    // $sql = "UPDATE article SET title ='" . $article['title'] . "', thumbnail = '" . $article['thumbnail'] . "', content = '" . $article['content'] . "', is_public = " . $article['is_public'] . ", type_id = " . $article['type_id'] . " WHERE article_id = " . $params[0];
+    $sql = "UPDATE article SET title = :title, thumbnail = :thumbnail, content = :content, is_public = :is_public, type_id = :type_id, date = null WHERE article_id = " . $params[0];
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bindParam(':title', $article['title']);
+    $stmt->bindParam(':thumbnail', $article['thumbnail']);
+    $stmt->bindParam(':content', $article['content']);
+    $stmt->bindParam(':is_public', $article['is_public']);
+    $stmt->bindParam(':type_id', $article['type_id']);
+
+    $stmt->execute();
+
+    if($stmt->execute()){
+        $response = ['status' => 200, 'message' => 'comment update successfully.', 'response' => $data[0]];
+    } else{
+        $response = ['status' => 500, 'message' => 'Failed to update comment.'];
+    }
+    $app->print($response);
+
+}
+
+if($app->delete('/article/delete/([0-9]*)')){
+    $article = $app->getParams();
+
+    $sql = "DELETE from article where article_id = ".$article[0];
+    $stmt = $conn->prepare($sql);
+
+    if($stmt->execute()){
+        $response = ['status' => 200, 'message' => 'comment deleted successfully'];
+    } else {
+        $response = ['status' => 500, 'message' => 'failed to delete comment'];
+    }
+}
+
+// main
 if ($app->get('/articles/([0-9]*)/user/([a-zA-Z0-9_]*)')) {
     $params = $app->getParams();
 
@@ -208,6 +247,7 @@ if ($app->get('/articles/([0-9]*)/user/([a-zA-Z0-9_]*)')) {
     }
 }
 
+// search
 if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
     $params = $app->getParams();
 
