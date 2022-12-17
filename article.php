@@ -6,6 +6,56 @@ $conn = $objDb->connect();
 
 $app = new App();
 
+// 특정 게시글 조회
+if($app->get('/article/([0-9]*)')){
+    $params = $app->getParams();
+    $sql = "select DISTINCT article_id, title,a_thumbnail, a_content, a_date, a_user from article_detail where article_id = ".$params[0];
+
+    $stmt = $conn->prepare($sql);
+
+    if($stmt->execute()) {
+
+        $result = $stmt->fetch();
+
+        $data = array(
+            'article_id' => $result['article_id'],
+            'title' => $result['title'],
+            'a_thumbnail' => $result['a_thumbnail'],
+            'a_content' => $result['a_content'],
+            'a_date' => $result['a_date'],
+            'a_user' => $result['a_user']
+        );
+
+        $sql2 = "select article_id, title from article where article_id in ((
+                 select article_id from article where article_id > ".$params[0]." and user_id = '".$data['a_user']."' limit 1), (select article_id from article where article_id < ".$params[0]." and user_id = '".$data['a_user']."' limit 1)); ";
+
+        $stmt2 = $conn->prepare($sql2);
+
+        if($stmt2->execute()) {
+            while($result2 = $stmt2->fetch()){
+                if($result2['article_id']>$data['article_id']){
+                    $data = array_merge($data, array(
+                        'nxtArticle' => array('article_id' => $result2['article_id'], 'title' => $result2['title'])
+                    ));
+                }
+                if($result2['article_id']<$data['article_id']){
+                    $data = array_merge($data, array(
+                        'preArticle' => array('article_id' => $result2['article_id'], 'title' => $result2['title'])
+                    ));
+                }
+            }
+        }
+
+
+        $response = ['status' => 200, 'message' => 'get article successfully.','response' => $data];
+        $app->print($response);
+
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to get article.'];
+        $app->print($response, 500);
+    }
+}
+
 if ($app->post('/article/post')) {
     $article = $app->getData();
     $sql = "INSERT INTO article (title, thumbnail, content, is_public, user_id, type_id) VALUES(:title, :thumbnail, :content, :is_public, :user_id, :type_id)";
