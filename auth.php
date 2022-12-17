@@ -47,9 +47,30 @@ if ($app->post('/login')) {
 
     if($stmt->execute()) {
         $result = $stmt->fetchAll();
-
+        echo "test1:"
         if($result[0][0] == 1) {
             $response = ['status' => 200, 'message' => 'Login successfully', 'response' => $id];
+
+            $sqlTime = "SELECT attendance_point FROM cattmunity.point where date_format(attendance_date,'%Y-%m-%d')= date_format(now(),'%Y-%m-%d')and user_id like '$id';";
+            $stmtTime = $conn->prepare($sqlTime);
+            $stmtTime->execute();
+            if($stmt->execute()) {
+                $resultTime = $stmtTime->fetchAll();
+                echo "test1:" + $sqlTime;
+            //  if($resultTime==""){
+            //     echo $sqlTime;
+            //  }
+            }
+            // 출석체크
+            // if(로그인 처음(1)이라는 포인트가 들어오면) 쿼리문
+            
+            $sqlAttend = "INSERT INTO point (attendance_point, attendance_date, user_id) VALUES(:attendance_point, :attendance_date, :user_id)";
+            $stmtAttend = $conn->prepare($sqlAttend);
+
+            $stmtAttend->bindParam(':attendance_point', $user['attendance_point']);
+            $stmtAttend->bindParam(':attendance_date', $user['attendance_date']);
+            $stmtAttend->bindParam(':user_id', $user['user_id']);
+
             $app->print($response);
         } else {
             $response = ['status' => 500, 'message' => 'Login failed'];
@@ -59,7 +80,10 @@ if ($app->post('/login')) {
     } else {
         $response = ['status' => 500, 'message' => 'Login failed'];
         $app->print($response, 500);
-}
+    }
+
+   
+
 }
 
 if ($app->get('/my-page/([a-zA-Z0-9_]*)')) {
@@ -94,4 +118,5 @@ if ($app->get('/my-page/([a-zA-Z0-9_]*)')) {
         $app->print($response, 500);
 }
 }
+
 ?>
