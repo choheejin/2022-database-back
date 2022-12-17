@@ -84,7 +84,7 @@ if ($app->post('/article/post')) {
 if ($app->get('/articles/([0-9]*)')) {
     $params = $app->getParams();
 
-    $sql = "SELECT article_id, title, thumbnail, concat(substr(content, 1, 50), ' ...') AS preview, type_id FROM article WHERE is_public = 1 and type_id =" . strval($params[0]);
+    $sql = "SELECT article_id, title, thumbnail, preview, type_id FROM preview WHERE type_id =" . strval($params[0]);
     $stmt = $conn->prepare($sql);
 
     $stmt->execute();
@@ -118,7 +118,7 @@ if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
     $set = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
     $conn->query($set);
 
-    $sql = "SELECT * FROM search WHERE (title LIKE '%" . strval($urlDecoded) . "%' OR content LIKE '%" . strval($urlDecoded) . "%') and type_id =" . strval($params[0]);
+    $sql = "SELECT * FROM preview WHERE (title LIKE '%" . strval($urlDecoded) . "%' OR content LIKE '%" . strval($urlDecoded) . "%') and type_id =" . strval($params[0]);
     // $sql = "SELECT * FROM search";
     // $sql = "SELECT * FROM search WHERE title LIKE '%" . strval($params[0]) . "%' OR content LIKE '%" . strval($params[0]) . "%'";
     $stmt = $conn->prepare($sql);
