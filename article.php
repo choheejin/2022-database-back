@@ -285,4 +285,79 @@ if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
     }
 }
 
+// history
+if ($app->get('/articles/history/([a-zA-Z0-9_]*)')) {
+    $params = $app->getParams();
+
+    $sql = "SELECT * FROM history WHERE user_id = '" . strval($params[0]) . "'";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    if($stmt->execute()) {
+        $data = [];
+        while($result = $stmt->fetch()){
+            array_push($data, array(
+                        'article_id' => $result['article_id'],
+                        'title' => $result['title'],
+                        'thumbnail' => $result['thumbnail'],
+                        'preview' => $result['preview'],
+                        'content' => $result['content']
+            ));
+        }
+
+        $response = ['status' => 200, 'message' => 'Record created successfully.','response' => $data];
+        $app->print($response);
+
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+        $app->print($response, 500);
+    }
+}
+
+if ($app->post('/articles/history/post')) {
+    $history = $app->getData();
+
+    $sql = "INSERT INTO users_view_articles(user_id, article_id) VALUE(:user_id, :article_id)";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bindParam(':user_id', $history['user_id']);
+    $stmt->bindParam(':article_id', $history['article_id']);
+
+    $data = array(
+        'user_id' => $history['user_id'],
+        'article_id' => $history['article_id']
+    );
+
+    if($stmt->execute()) {
+        $response = ['status' => 200, 'message' => 'Record created successfully.',
+        'response' => $data
+        ];
+    } else {
+        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+    }
+
+    echo json_encode($response);
+}
+
+if ($app->put('/articles/history/update/([0-9]*)')){
+    $params = $app->getParams();
+
+    $history = $app->getData();
+
+    $sql = "UPDATE users_view_articles SET date_viewed = null WHERE user_id = :user_id AND article_id = " . $params[0];
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bindParam(':user_id', $history['user_id']);
+
+    $stmt->execute();
+
+    if($stmt->execute()){
+        $response = ['status' => 200, 'message' => 'comment update successfully.'];
+    } else{
+        $response = ['status' => 500, 'message' => 'Failed to update comment.'];
+    }
+    $app->print($response);
+
+}
+
 ?>
