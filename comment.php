@@ -6,7 +6,7 @@ $conn = $objDb->connect();
 
 $app = new App();
 
-if ($app->get('/comments/([a-zA-Z0-9_])')) {
+if ($app->get('/comments/([0-9]*)')) {
     $params = $app->getParams();
 
     $sql = "SELECT * FROM comment where article_id = '" . $params[0] . "'";
@@ -35,6 +35,39 @@ if ($app->get('/comments/([a-zA-Z0-9_])')) {
     }
 }
 
+if ($app->put('/comment/update/([0-9]*)')){
+    $params = $app->getParams();
+
+    $comment = $app->getData();
+
+    $sql = "update comment set content = '".$comment['content']."' where comment_id = ".$params[0];
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+
+    if($stmt->execute()){
+        $data = [];
+        $sql2 = "SELECT * FROM comment where comment_id = " .$params[0];
+
+        $stmt2 = $conn->prepare($sql2);
+        $stmt2->execute();
+        $result = $stmt2->fetch();
+
+        array_push($data, array(
+            'comment_id' => $result['comment_id'],
+            'content' => $result['content'],
+            'date' => $result['date'],
+            'user_id' => $result['user_id'],
+            'article_id' => $result['article_id']
+        ));
+
+        $response = ['status' => 200, 'message' => 'comment update successfully.', 'response' => $data[0]];
+    } else{
+        $response = ['status' => 500, 'message' => 'Failed to update comment.'];
+    }
+    $app->print($response);
+
+}
+
 if ($app->post('/comment/post')) {
     // POST, PUT 등에서 보내온 데이타
     $comment = $app->getData();
@@ -48,11 +81,11 @@ if ($app->post('/comment/post')) {
     $data = array('content' => $comment['content'], 'user_id' => $comment['user_id'], 'article_id' => $comment['article_id']);
 
     if($stmt->execute()) {
-        $response = ['status' => 200, 'message' => 'Record created successfully.',
+        $response = ['status' => 200, 'message' => 'comment posted successfully.',
         'response' => $data
         ];
     } else {
-        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+        $response = ['status' => 500, 'message' => 'Failed to post comment.'];
     }
 
     echo json_encode($response);
