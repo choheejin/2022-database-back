@@ -60,8 +60,39 @@ if ($app->post('/login')) {
         $response = ['status' => 500, 'message' => 'Login failed'];
         $app->print($response, 500);
 }
-
 }
 
+if ($app->get('/my-page/([a-zA-Z0-9_])')) {
+    // POST, PUT 등에서 보내온 데이타
 
+    $params = $app->getParams();
+    
+    $sql3 = "SELECT id, name, gender, email from user where id ='$params[0]';";
+    $stmt = $conn->prepare($sql3);
+    $stmt->execute();
+
+    if($stmt->execute()) {
+        $data = [];
+        while($row = $stmt->fetch()){
+            array_push($data, array(
+                'id' => $row['id'],
+                'name' => $row['name'],
+                'gender' => $row['gender'],
+                'email' => $row['email'],
+            ));
+        }
+
+        if(count($data) > 0) {
+            $response = ['status' => 200, 'message' => 'mypage successfully', 'response' => $data[0]];
+            $app->print($response);
+        } else {
+            $response = ['status' => 500, 'message' => 'getmypage failed'];
+            $app->print($response, 500);
+        }
+
+    } else {
+        $response = ['status' => 500, 'message' => 'getmypage failed'];
+        $app->print($response, 500);
+}
+}
 ?>
