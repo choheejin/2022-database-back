@@ -8,7 +8,7 @@ $app = new App();
 // 특정 유저 게시글 전체 조회
 if($app->get('/articles/user/([a-zA-Z0-9_]*)')){
     $params = $app->getParams();
-    $sql = "SELECT article_id, title, thumbnail, if (length(content) > 50, concat(substr(content, 1, 50), ' ...'), content) as preview, content, date, type_id FROM article where article_id in (select article_id from article where user_id = '".$params[0]."')";
+    $sql = "SELECT article_id, title, thumbnail, if (length(content) > 50, concat(substr(content, 1, 50), ' ...'), content) as preview, content, date, type_id FROM article where article_id in (select article_id from article where user_id = '".$params[0]."') order by article_id desc";
 
     $stmt = $conn->prepare($sql);
 
@@ -44,7 +44,7 @@ if($app->get('/articles/user/([a-zA-Z0-9_]*)')){
 // 특정 유저 게시글 private 제외 조회
 if($app->get('/articles/non-user/([a-zA-Z0-9_]*)')){
     $params = $app->getParams();
-    $sql = "SELECT article_id, title, thumbnail, preview, content, date, type_id FROM preview where article_id in (select article_id from article where user_id = '".$params[0]."')";
+    $sql = "SELECT article_id, title, thumbnail, preview, content, date, type_id FROM preview where article_id in (select article_id from article where user_id = '".$params[0]."') order by article_id desc";
 
     $stmt = $conn->prepare($sql);
 
@@ -242,7 +242,7 @@ if($app->delete('/article/delete/([0-9]*)')){
 if ($app->get('/articles/([0-9]*)/user/([a-zA-Z0-9_]*)')) {
     $params = $app->getParams();
 
-    $sql = "SELECT article_id, title, thumbnail, preview, user_id, type_id FROM preview WHERE type_id =" . strval($params[0]);
+    $sql = "SELECT article_id, title, thumbnail, preview, user_id, type_id FROM preview WHERE type_id =" . strval($params[0]) . " order by article_id desc;";
     $stmt = $conn->prepare($sql);
 
     $stmt->execute();
@@ -293,7 +293,7 @@ if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
     $set = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
     $conn->query($set);
 
-    $sql = "SELECT * FROM preview WHERE (title LIKE '%" . strval($urlDecoded) . "%' OR content LIKE '%" . strval($urlDecoded) . "%') and type_id =" . strval($params[0]);
+    $sql = "SELECT * FROM preview WHERE (title LIKE '%" . strval($urlDecoded) . "%' OR content LIKE '%" . strval($urlDecoded) . "%') and type_id =" . strval($params[0]) . " order by article_id desc;";
     // $sql = "SELECT * FROM search";
     // $sql = "SELECT * FROM search WHERE title LIKE '%" . strval($params[0]) . "%' OR content LIKE '%" . strval($params[0]) . "%'";
     $stmt = $conn->prepare($sql);
