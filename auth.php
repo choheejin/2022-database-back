@@ -149,4 +149,35 @@ if ($app->get('/mystamp/([a-zA-Z0-9_]*)')) {
 
 }
 
+if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
+    // POST, PUT 등에서 보내온 데이타
+    $params = $app->getParams();
+    
+    $sql4 = "SELECT attendance_date from point where user_id ='$params[0]';";
+    $stmt = $conn->prepare($sql4);
+    $stmt->execute();
+
+    if($stmt->execute()) {
+        $data = [];
+        while($row = $stmt->fetch()){
+            array_push($data, array(
+                'attendance_date' => $row['attendance_date']
+            ));
+        }
+
+        if(count($data) > 0) {
+            $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
+            $app->print($response);
+        } else {
+            $response = ['status' => 500, 'message' => 'getmystemp failed'];
+            $app->print($response, 500);
+        }
+
+    } else {
+        $response = ['status' => 500, 'message' => 'getmypage failed'];
+        $app->print($response, 500);
+}
+
+}
+
 ?>
