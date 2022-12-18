@@ -151,21 +151,46 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
     // POST, PUT 등에서 보내온 데이타
     $params = $app->getParams();
     
-    $sql4 = "SELECT badge_id from badge where user_id ='$params[0]';";
-    $stmt = $conn->prepare($sql4);
+    // 유저 아이디로 출석 날짜 확인
+    $sql2 = "SELECT point_id from point where user_id = '".$params[0]."';";
+    $stmt = $conn->prepare($sql2);
     $stmt->execute();
 
     if($stmt->execute()) {
         $data = [];
         while($row = $stmt->fetch()){
             array_push($data, array(
-                'badge_id' => $row['badge_id']
+                'point_id' => $row['point_id']
             ));
         }
-////////////////////////
-        if(count($data) > 0) {
-            $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
-            $app->print($response);
+
+        //echo json_encode($data);
+
+        if(count($data) > 0) { //출석 날짜가 있으면
+            $sql3 = "SELECT badge_detail from badge where point_id = " . $data[0]['point_id'];
+            $stmt = $conn->prepare($sql3);
+            $stmt->execute();
+
+            if($stmt->execute()){
+                $badgedata = [];
+                while($row = $stmt->fetch()){
+                    array_push($badgedata, array(
+                        'badge_detail' => $row['badge_detail']
+                    ));
+                }
+
+
+                if(count($badgedata)>0){ //배찌가 있으면
+                    $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $badgedata];
+                    $app->print($response);
+                }else{//배찌가 없으면 배찌 생성 후 배찌 출력
+                    $sqlBadge = "INSERT INTO badge (badge_name, badge_detail, user_id, point_id) VALUES('첫출석', '첫출석', '" .$params[0]."','".$data[0]."')";
+                    $stmtB = $conn->prepare($sqlBadge);
+                    $stmtB->execute();
+                    $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $badgedata];
+                    $app->print($response);
+                }
+            }
         } else {
             $response = ['status' => 500, 'message' => 'getmystemp failed'];
             $app->print($response, 500);
@@ -174,9 +199,6 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
     } else {
         $response = ['status' => 500, 'message' => 'getmypage failed'];
         $app->print($response, 500);
+    }
 }
-
-}
-
-
 ?>
