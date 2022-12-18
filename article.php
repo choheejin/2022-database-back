@@ -326,7 +326,7 @@ if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
 if ($app->get('/articles/history/([a-zA-Z0-9_]*)')) {
     $params = $app->getParams();
 
-    $sql = "SELECT * FROM history WHERE user_id = '" . strval($params[0]) . "'";
+    $sql = "SELECT * FROM history WHERE user_id = '" . strval($params[0]) . "' order by date desc";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
 
@@ -354,6 +354,7 @@ if ($app->get('/articles/history/([a-zA-Z0-9_]*)')) {
 if ($app->post('/articles/history/post')) {
     $history = $app->getData();
 
+    // 일단 넣고
     $sql = "INSERT INTO users_view_articles(user_id, article_id) VALUE(:user_id, :article_id)";
     $stmt = $conn->prepare($sql);
 
@@ -365,15 +366,47 @@ if ($app->post('/articles/history/post')) {
         'article_id' => $history['article_id']
     );
 
-    if($stmt->execute()) {
-        $response = ['status' => 200, 'message' => 'Record created successfully.',
-        'response' => $data
+    try {
+        $stmt->execute();
+        $response = ['status' => 200, 'message' => 'Create History successfully.',
+            'response' => $data
         ];
-    } else {
-        $response = ['status' => 500, 'message' => 'Failed to create record.'];
+        echo json_encode($response);
+
+    }  catch (Exception $ex) {
+        // 안 넣어지고 에러가 중복키 때문이면 update 로 바꾸게 post 함수 탈출
+        if($ex->getCode() === "23000"){
+            $response = ['status' => 501, 'message' => '이미 히스토리에 존재합니다'];
+        }
+        return $app->print($response, 500);
     }
 
-    echo json_encode($response);
+    // 마지막에 얼마나 들어가는지 확인하고,
+    $sqlSelect = "select * from users_view_articles where user_id = '".$history['user_id']."' order by date_viewed";
+    $stmtSelect = $conn->prepare($sqlSelect);
+
+    try {
+        $stmtSelect->execute();
+        $resultSelect = $stmtSelect->fetchAll();
+
+        // 6개 이상(7개)이면 제일 옛날 기록 하나 삭제 해서 6개로 유지
+        if(count($resultSelect) >= 6){
+            try {
+                $sqlDelete = "Delete from users_view_articles where article_id = '".$resultSelect[0][1]."' and user_id = '".$resultSelect[0][0]."' ";
+
+                $stmtDelete = $conn->prepare($sqlDelete);
+                $stmtDelete->execute();
+
+            } catch (Exception $ex){
+                $response = ['status' => 502, 'message' => 'failed to drop history'];
+                $app->print($response, 500);
+            }
+        }
+
+    } catch (Exception $ex) {
+        $response = ['status' => 500, 'message' => 'failed to create history'];
+        $app->print($response, 500);
+    }
 }
 
 if ($app->put('/articles/history/update/([0-9]*)')){

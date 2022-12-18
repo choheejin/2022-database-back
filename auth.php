@@ -62,7 +62,7 @@ if ($app->post('/login')) {
                 $stmt3 = $conn->prepare($sqlAttend);
                 if($stmt3->execute()){
                     // 오늘 출석일 가지고 오는 쿼리문
-                    $sql3 = "select * from point where date_format(attendance_date,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')and user_id like'".$id."'";
+                    $sql3 = "select * from point where date_format(attendance_date,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')and user_id like '".$id."'";
                     $stmt4 = $conn->prepare($sql3);
                     if($stmt4->execute()){
                         $result3 = $stmt4->fetch();
@@ -122,7 +122,7 @@ if ($app->get('/mystamp/([a-zA-Z0-9_]*)')) {
     // POST, PUT 등에서 보내온 데이타
     $params = $app->getParams();
     
-    $sql4 = "SELECT attendance_date from point where user_id ='$params[0]';";
+    $sql4 = "SELECT attendance_date from point where user_id = '$params[0]' order by attendance_date;";
     $stmt = $conn->prepare($sql4);
     $stmt->execute();
 
