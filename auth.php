@@ -135,7 +135,7 @@ if ($app->get('/mystamp/([a-zA-Z0-9_]*)')) {
         }
 
         if(count($data) > 0) {
-            $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data[0]];
+            $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
             $app->print($response);
         } else {
             $response = ['status' => 500, 'message' => 'getmystemp failed'];
