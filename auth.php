@@ -153,7 +153,7 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
     // POST, PUT 등에서 보내온 데이타
     $params = $app->getParams();
     
-    $sql4 = "SELECT attendance_date from point where user_id ='$params[0]';";
+    $sql4 = "SELECT point_id from point where user_id ='$params[0]';";
     $stmt = $conn->prepare($sql4);
     $stmt->execute();
 
@@ -161,17 +161,31 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
         $data = [];
         while($row = $stmt->fetch()){
             array_push($data, array(
-                'attendance_date' => $row['attendance_date']
+                'point_id' => $row['point_id']
             ));
         }
-
+////////////////////////
         if(count($data) > 0) {
-            
-            $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
-            $app->print($response);
-        } else {
-            $response = ['status' => 500, 'message' => 'getmystemp failed'];
-            $app->print($response, 500);
+                //만약 badge에 아무것도 없으면
+                // $sql5 = "INSERT INTO point (badge_name, badge_detail, user_id, point_id) VALUES("첫","첫", '$params[0]', '$data[0]')";
+                // $stmt = $conn->prepare($sql5);
+                // $stmt->execute();
+
+                // if($stmt->execute()) {
+                //     $badgedetail = [];
+                //     while($row = $stmt->fetch()){
+                //         array_push($badgedetail, array(
+                //             'badge_detail' => $row['badge_detail']
+                //         ));
+                //     }
+
+                   // if(count($badgedetail) > 0) {
+                        $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
+                        $app->print($response);
+                    } else {
+                        $response = ['status' => 500, 'message' => 'getmystemp failed'];
+                        $app->print($response, 500);
+                   // }
         }
 
     } else {
