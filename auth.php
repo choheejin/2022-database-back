@@ -166,6 +166,7 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
         }
 
         if(count($data) > 0) {
+            
             $response = ['status' => 200, 'message' => 'mystemp successfully', 'response' => $data];
             $app->print($response);
         } else {
@@ -179,5 +180,6 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
 }
 
 }
+
 
 ?>
