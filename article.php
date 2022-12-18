@@ -326,7 +326,7 @@ if ($app->get('/articles/([0-9]*)/search/([ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|%]*)')) {
 if ($app->get('/articles/history/([a-zA-Z0-9_]*)')) {
     $params = $app->getParams();
 
-    $sql = "SELECT * FROM history WHERE user_id = '" . strval($params[0]) . "'";
+    $sql = "SELECT * FROM history WHERE user_id = '" . strval($params[0]) . "' order by date desc";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
 
