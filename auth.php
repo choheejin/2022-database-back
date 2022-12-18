@@ -200,9 +200,5 @@ if ($app->get('/mybadge/([a-zA-Z0-9_]*)')) {
         $response = ['status' => 500, 'message' => 'getmypage failed'];
         $app->print($response, 500);
     }
-    } 
-    else {
-    $response = ['status' => 500, 'message' => 'getmystemp failed'];
-    $app->print($response, 500);
-} 
+}
 ?>
