@@ -3,8 +3,6 @@
 $objDb = new DbConnect;
 $conn = $objDb->connect();
 
-include_once 'app.php';
-
 $app = new App();
 
 

@@ -1,5 +1,4 @@
 <?php
-include_once 'app.php';
 
 $objDb = new DbConnect;
 $conn = $objDb->connect();
@@ -388,11 +387,13 @@ if ($app->post('/articles/history/post')) {
     try {
         $stmtSelect->execute();
         $resultSelect = $stmtSelect->fetchAll();
+		
 
         // 6개 이상(7개)이면 제일 옛날 기록 하나 삭제 해서 6개로 유지
-        if(count($resultSelect) >= 6){
+        if(count($resultSelect) > 6){
             try {
-                $sqlDelete = "Delete from users_view_articles where article_id = '".$resultSelect[0][1]."' and user_id = '".$resultSelect[0][0]."' ";
+				$delete = $resultSelect[0];
+                $sqlDelete = "Delete from users_view_articles where article_id = '".$delete['article_id']."' and user_id = '".$delete['user_id']."' ";
 
                 $stmtDelete = $conn->prepare($sqlDelete);
                 $stmtDelete->execute();

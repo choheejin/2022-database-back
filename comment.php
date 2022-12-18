@@ -1,5 +1,4 @@
 <?php
-include_once 'app.php';
 
 $objDb = new DbConnect;
 $conn = $objDb->connect();
